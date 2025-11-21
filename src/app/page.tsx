@@ -2,7 +2,7 @@
 import "./styles/Styles.css";
 import MightyTree from "/public/assets/mightytree.svg";
 import Mascot from "./components/Mascot";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Walnut from "./components/Walnut";
 import WalnutModal from "./components/WalnutModal";
 
@@ -18,6 +18,18 @@ export default function Home() {
   const [walnutText, setWalnutText] = useState("");
   const [textareaValue, setTextareaValue] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint in Tailwind
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleSubmit = () => {
     setIsProcessing(true);
@@ -74,6 +86,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative">
+      {isMobile && (
+        <div className="fixed inset-0 bg-black z-[9999] flex items-center justify-center p-8">
+          <p className="text-white text-center text-lg">
+            hi sorry the walnut generator isn't ready for mobile yet. please use
+            this site on a desktop thank you thank you!
+          </p>
+        </div>
+      )}
       <div className="horizon-container" />
       <div className="flex flex-col sm:flex-row justify-start pl-[5%] min-h-screen">
         <div className="flex flex-col w-full sm:w-[50%] py-8">

@@ -102,70 +102,42 @@ export default function WalnutModal({
     onReset();
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 400;
-      canvas.height = 400;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Could not get canvas context");
+      // Get the walnut SVG element from the ref
+      const walnutContainer = bottomShellRef.current;
+      if (!walnutContainer) {
+        throw new Error("Walnut container not found");
       }
-      canvas.height = 400;
-      // Set background
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, 400, 400);
-      // Function to draw SVG to canvas
-      const drawSVGToCanvas = (element: SVGSVGElement): Promise<void> => {
-        return new Promise((resolve) => {
-          const svgString = new XMLSerializer().serializeToString(element);
-          const blob = new Blob([svgString], { type: "image/svg+xml" });
-          const url = URL.createObjectURL(blob);
-          const img = new Image();
-          img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-            URL.revokeObjectURL(url);
-            resolve();
-          };
-          img.src = url;
-        });
-      };
-      // Create temporary SVG elements for the split state
-      const tempSvg = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "svg"
-      );
-      tempSvg.setAttribute("width", "400");
-      tempSvg.setAttribute("height", "400");
-      // Clone the nut meat and walnut paths
-      const nutMeatPath = document
-        .querySelector('svg path[stroke="#ffffff"]')
-        ?.cloneNode(true) as SVGPathElement;
-      const walnutPath = document
-        .querySelector(".cursor-pointer svg path")
-        ?.cloneNode(true) as SVGPathElement;
-      if (!nutMeatPath || !walnutPath) {
-        throw new Error("SVG paths not found");
+      
+      const walnutSvg = walnutContainer.querySelector("svg") as SVGSVGElement;
+      if (!walnutSvg) {
+        throw new Error("Walnut SVG not found");
       }
-      // Set attributes for visibility
-      nutMeatPath.setAttribute("fill", "none");
-      nutMeatPath.setAttribute("stroke", "#ffffff");
-      nutMeatPath.setAttribute("stroke-width", "2");
-      walnutPath.setAttribute("fill", "black");
-      walnutPath.setAttribute("stroke", "#ffffff");
-      walnutPath.setAttribute("stroke-width", "2");
-      nutMeatPath.setAttribute("stroke", "#ffffff");
-      // Add paths to temporary SVG in correct order
-      tempSvg.appendChild(nutMeatPath);
-      tempSvg.appendChild(walnutPath);
-      // Draw the combined SVG to canvas
-      await drawSVGToCanvas(tempSvg);
-      // Convert to PNG and download
-      const dataUrl = canvas.toDataURL("image/png");
+
+      // Clone the SVG to avoid modifying the original
+      const clonedSvg = walnutSvg.cloneNode(true) as SVGSVGElement;
+      
+      // Ensure the SVG has proper dimensions
+      clonedSvg.setAttribute("width", "400");
+      clonedSvg.setAttribute("height", "400");
+      clonedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+      // Serialize the SVG to a string
+      const svgString = new XMLSerializer().serializeToString(clonedSvg);
+      
+      // Create a blob with SVG MIME type
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      
+      // Create download link and trigger download
       const link = document.createElement("a");
-      link.download = `walnut-${seed}.png`;
-      link.href = dataUrl;
+      link.download = `walnut-${seed}.svg`;
+      link.href = url;
       link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Error downloading walnut:", err);
     }
@@ -197,7 +169,7 @@ export default function WalnutModal({
         onClick={handleDownload}
         className="flex-1 border-t border-white py-2 px-4 text-white hover:bg-white hover:text-black text-left cursor-pointer"
       >
-        · download walnut pic
+        · download walnut svg
       </button>
       <button
         onClick={handleReset}
